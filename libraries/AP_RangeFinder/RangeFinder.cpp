@@ -21,6 +21,7 @@
 #include "AP_RangeFinder_PX4.h"
 #include "AP_RangeFinder_PX4_PWM.h"
 #include "AP_RangeFinder_BBB_PRU.h"
+#include "AP_RangeFinder_ir.h"
 
 // table of user settable parameters
 const AP_Param::GroupInfo RangeFinder::var_info[] PROGMEM = {

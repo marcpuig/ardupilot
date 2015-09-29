@@ -681,6 +681,62 @@ void Copter::Log_Write_Heli()
 }
 #endif
 
+
+struct PACKED log_ir_loc {
+    uint8_t head1;
+    uint8_t head2;
+    uint8_t msgid;
+    uint64_t time_us;
+    float x;
+    float y;
+    float z;
+    float velx;
+    float vely;
+    float velz;
+    float heading;
+    uint8_t num_waypoints;
+    uint8_t waypoint;
+};
+
+void Copter::Log_Write_Location(locationT &location) {
+    struct log_ir_loc pkt;
+    
+    pkt.head1 = HEAD_BYTE1;
+    pkt.head2 = HEAD_BYTE2;
+    pkt.msgid = LOG_IR_LOC_MSG;
+    pkt.time_us = hal.scheduler->micros64(),
+    pkt.x = location.x;
+    pkt.y = location.y;
+    pkt.z = location.z;
+    pkt.velx = location.velx;
+    pkt.vely = location.vely;
+    pkt.velz = location.velz;
+    pkt.heading = location.heading;
+    pkt.num_waypoints = location.num_waypoints;
+    pkt.waypoint = location.waypoint;
+    
+    DataFlash.WriteBlock(&pkt, sizeof(pkt));
+}
+
+struct PACKED log_ir_pid {
+    uint8_t head1;
+    uint8_t head2;
+    uint8_t msgid;
+    uint64_t time_us;
+    float desired_x_speed;
+    float desired_y_speed;
+    float x_speed_error;
+    float y_speed_error;
+    float roll_p_pos;
+    float pitch_p_pos;
+    float roll_p_speed;
+    float pitch_p_speed;
+    float roll_i_pos;
+    float pitch_i_pos;
+    float target_roll;
+    float target_pitch;
+};
+
 const struct LogStructure Copter::log_structure[] PROGMEM = {
     LOG_COMMON_STRUCTURES,
 #if AUTOTUNE_ENABLED == ENABLED
@@ -693,6 +749,10 @@ const struct LogStructure Copter::log_structure[] PROGMEM = {
       "PTUN", "QBfHHH",          "TimeUS,Param,TunVal,CtrlIn,TunLo,TunHi" },  
     { LOG_OPTFLOW_MSG, sizeof(log_Optflow),       
       "OF",   "QBffff",   "TimeUS,Qual,flowX,flowY,bodyX,bodyY" },
+    { LOG_IR_LOC_MSG, sizeof(log_ir_loc),
+      "IRL", "QfffffffBB", "TimeUS,X,Y,Z,VX,VY,VZ,hdg,W,Wid" },
+    { LOG_IR_PID_MSG, sizeof(log_ir_pid),
+      "IRP", "Qffffffffffffff", "TimeUS,DX,DY,DXS,DYS,XSe,YSe,rPp,pPp,rPs,pPs,rIp,pIp,DR,DP" },
     { LOG_NAV_TUNING_MSG, sizeof(log_Nav_Tuning),       
       "NTUN", "Qffffffffff", "TimeUS,DPosX,DPosY,PosX,PosY,DVelX,DVelY,VelX,VelY,DAccX,DAccY" },
     { LOG_CONTROL_TUNING_MSG, sizeof(log_Control_Tuning),

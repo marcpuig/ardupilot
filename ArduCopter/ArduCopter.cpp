@@ -153,6 +153,8 @@ const AP_Scheduler::Task Copter::scheduler_tasks[] PROGMEM = {
 };
 
 
+IPC *ipc;
+
 void Copter::setup() 
 {
     cliSerial = hal.console;
@@ -171,6 +173,14 @@ void Copter::setup()
     // setup initial performance counters
     perf_info_reset();
     fast_loopTimer = hal.scheduler->micros();
+    
+    // Center camera servos
+    hal.rcout->write(CH_ROLL, 1500);
+    hal.rcout->write(CH_PITCH, 1500);
+    
+    ipc = new IPC();
+    if (ipc->init(true))
+        exit(1);
 }
 
 /*
@@ -609,6 +619,23 @@ void Copter::read_AHRS(void)
 #endif
 
     ahrs.update();
+    
+    attitudeT attitude;
+    attitude.roll = ahrs.roll_sensor;
+    attitude.pitch = ahrs.pitch_sensor;
+    attitude.yaw = ahrs.yaw_sensor;
+    
+    ipc->setAttitude(attitude);
+    
+    locationT location;
+    ipc->getLocation(location);
+    
+    // Update servo positions
+    hal.rcout->write(CH_ROLL, location.servoRoll);
+    hal.rcout->write(CH_PITCH, location.servoPitch);
+    
+    // Log data
+    Log_Write_Location(location);
 }
 
 // read baro and sonar altitude at 10hz

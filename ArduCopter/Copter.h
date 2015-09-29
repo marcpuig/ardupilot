@@ -115,6 +115,8 @@
 // Local modules
 #include "Parameters.h"
 
+#include <IPC/IPC.h>
+
 class Copter {
     public:
     friend class GCS_MAVLINK;
@@ -620,6 +622,7 @@ private:
 #if FRAME_CONFIG == HELI_FRAME
     void Log_Write_Heli(void);
 #endif
+    void Log_Write_Location(locationT &location);
     void Log_Read(uint16_t log_num, uint16_t start_page, uint16_t end_page);
     void start_logging() ;
     void load_parameters(void);
@@ -751,6 +754,9 @@ private:
     void poshold_roll_controller_to_pilot_override();
     void poshold_pitch_controller_to_pilot_override();
 
+    bool ir_init(bool ignore_checks);
+    void ir_run();
+    
     bool rtl_init(bool ignore_checks);
     void rtl_run();
     void rtl_climb_start();
@@ -989,3 +995,4 @@ public:
 
 extern const AP_HAL::HAL& hal;
 extern Copter copter;
+extern IPC *ipc;

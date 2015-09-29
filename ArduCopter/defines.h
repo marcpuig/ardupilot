@@ -101,7 +101,8 @@ enum autopilot_modes {
     FLIP =         14,  // automatically flip the vehicle on the roll axis
     AUTOTUNE =     15,  // automatically tune the vehicle's roll and pitch gains
     POSHOLD =      16,  // automatic position hold with manual override, with automatic throttle
-    BRAKE =        17   // full-brake using inertial/GPS system, no pilot input
+    BRAKE =        17,  // full-brake using inertial/GPS system, no pilot input
+    IR =           18   // IR Positioning
 };
 
 // Tuning enumeration
@@ -250,6 +251,8 @@ enum FlipState {
 #define LOG_MOTBATT_MSG                 0x1E
 #define LOG_PARAMTUNE_MSG               0x1F
 #define LOG_HELI_MSG                    0x20
+#define LOG_IR_LOC_MSG                  0x21
+#define LOG_IR_PID_MSG                  0x22
 
 #define MASK_LOG_ATTITUDE_FAST          (1<<0)
 #define MASK_LOG_ATTITUDE_MED           (1<<1)
@@ -416,5 +419,9 @@ enum FlipState {
 
 // for PILOT_THR_BHV parameter
 #define THR_BEHAVE_FEEDBACK_FROM_MID_STICK (1<<0)
+
+// Camera servo channels
+#define CH_ROLL 4
+#define CH_PITCH 5
 
 #endif // _DEFINES_H
