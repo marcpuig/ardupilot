@@ -153,7 +153,7 @@ const AP_Scheduler::Task Copter::scheduler_tasks[] PROGMEM = {
 };
 
 
-IPC *ipc;
+IPC *ipc = NULL;
 
 void Copter::setup() 
 {
@@ -634,8 +634,15 @@ void Copter::read_AHRS(void)
     hal.rcout->write(CH_ROLL, location.servoRoll);
     hal.rcout->write(CH_PITCH, location.servoPitch);
     
-    // Log data
-    Log_Write_Location(location);
+    static int divider = 0;
+            
+    if (!divider) {
+        // Log data
+        Log_Write_Location(location);
+        divider = 5;
+    }
+    else
+        divider--;
 }
 
 // read baro and sonar altitude at 10hz

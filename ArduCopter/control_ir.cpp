@@ -143,11 +143,11 @@ void Copter::ir_run()
             //printf("iTR: %f, ", target_roll);
             AP_Notify::flags.gps_status = 3;
             float max_angle = 1500;
-            float max_speed = 0.100; //0.300
-            float p_desired_speed = 0.75;
-            float p_pos = 14; // 1.5
-            float p_speed = 6; //3.5; // 6.0
-            float i_pos = 0.001; // 0.03
+            float max_speed = 0.200; //0.300
+            float p_desired_speed = 1.25; // 0.75;
+            float p_pos = 15; // 3 // 16; //14; // 1.5
+            float p_speed = 9.0; // 7 //4; // 6; //3.5; // 6.0
+            float i_pos = 0.00; //0.008; // 0.03
             float maxI = 2; // 2
             
             static float roll_i_pos = 0;
@@ -175,9 +175,16 @@ void Copter::ir_run()
             float roll_p_speed = x_speed_error * p_speed;
             float pitch_p_speed = -y_speed_error * p_speed;
             
-            // Not used
+            /*if (position_x_error < 0.10 && position_x_error > -0.10 && 
+                position_y_error < 0.10 && position_y_error > -0.10)
+                roll_p_speed = pitch_p_speed = 0;
+            else
+                p_pos = 0;*/
+                
+                
             float roll_p_pos = position_x_error * p_pos;
             float pitch_p_pos = -position_y_error * p_pos;
+            
             
             // compute integrative roll and pitch
             roll_i_pos += position_x_error * i_pos;
@@ -213,27 +220,34 @@ void Copter::ir_run()
                 (int)(hal.scheduler->micros64() / 1000), position_x_error, desired_x_speed,\
                 x_speed_error, roll_p_pos, roll_p_speed, roll_i_pos, r, p, target_roll);*/
             
-            // Log data
-            struct log_ir_pid pkt;
-            pkt.head1 = HEAD_BYTE1;
-            pkt.head2 = HEAD_BYTE2;
-            pkt.msgid = LOG_IR_PID_MSG;
-            pkt.time_us = hal.scheduler->micros64(),
-            pkt.desired_x = desired_x;
-            pkt.desired_y = desired_y;
-            pkt.desired_x_speed = desired_x_speed;
-            pkt.desired_y_speed = desired_y_speed;
-            pkt.x_speed_error = x_speed_error;
-            pkt.y_speed_error = y_speed_error;
-            pkt.roll_p_pos = roll_p_pos;
-            pkt.pitch_p_pos = pitch_p_pos;
-            pkt.roll_p_speed = roll_p_speed;
-            pkt.pitch_p_speed = pitch_p_speed;
-            pkt.roll_i_pos = roll_i_pos;
-            pkt.pitch_i_pos = pitch_i_pos;
-            pkt.target_roll = target_roll;
-            pkt.target_pitch = target_pitch;
-            DataFlash.WriteBlock(&pkt, sizeof(pkt));
+            static int divider = 0;
+            
+            if (!divider) {
+                // Log data
+                struct log_ir_pid pkt;
+                pkt.head1 = HEAD_BYTE1;
+                pkt.head2 = HEAD_BYTE2;
+                pkt.msgid = LOG_IR_PID_MSG;
+                pkt.time_us = hal.scheduler->micros64(),
+                pkt.desired_x = desired_x;
+                pkt.desired_y = desired_y;
+                pkt.desired_x_speed = desired_x_speed;
+                pkt.desired_y_speed = desired_y_speed;
+                pkt.x_speed_error = x_speed_error;
+                pkt.y_speed_error = y_speed_error;
+                pkt.roll_p_pos = roll_p_pos;
+                pkt.pitch_p_pos = pitch_p_pos;
+                pkt.roll_p_speed = roll_p_speed;
+                pkt.pitch_p_speed = pitch_p_speed;
+                pkt.roll_i_pos = roll_i_pos;
+                pkt.pitch_i_pos = pitch_i_pos;
+                pkt.target_roll = target_roll;
+                pkt.target_pitch = target_pitch;
+                DataFlash.WriteBlock(&pkt, sizeof(pkt));
+                divider = 5;
+            }
+            else 
+                divider--;
         }    
         
         // call attitude controller

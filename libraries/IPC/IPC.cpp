@@ -66,8 +66,8 @@ int IPC::init(bool _server) {
         // Execute the process
         pID = fork();
         if (pID == 0) {                // child
-            chdir("/home/pi/projecte/build");
-            execl("/home/pi/projecte/build/projecte", (char *) 0);
+            chdir("/home/pi/irPositioning/build");
+            execl("/home/pi/irPositioning/build/irPositioning", (char *) 0);
             exit(0);
         }
         else if (pID < 0) {

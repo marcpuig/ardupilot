@@ -307,6 +307,11 @@ void RangeFinder::detect_instance(uint8_t instance)
         }
     }
 #endif
+    if (type == RangeFinder_TYPE_IR) {
+        state[instance].instance = instance;
+        drivers[instance] = new AP_RangeFinder_ir(*this, instance, state[instance]);
+        return;
+    }
     if (type == RangeFinder_TYPE_ANALOG) {
         // note that analog must be the last to be checked, as it will
         // always come back as present if the pin is valid

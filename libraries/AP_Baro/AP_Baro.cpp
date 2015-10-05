@@ -23,8 +23,10 @@
 #include <AP_Common/AP_Common.h>
 #include "AP_Baro.h"
 #include <AP_HAL/AP_HAL.h>
+#include <IPC/IPC.h>
 
 extern const AP_HAL::HAL& hal;
+extern IPC *ipc;
 
 // table of user settable parameters
 const AP_Param::GroupInfo AP_Baro::var_info[] PROGMEM = {
@@ -325,13 +327,29 @@ void AP_Baro::update(void)
         sensors[i].healthy = (now - sensors[i].last_update_ms < 500) && !is_zero(sensors[i].pressure);
     }
 
+    if (ipc == NULL)
+        return;
+
+    locationT location;
+    ipc->getLocation(location);
+    static float altitude_offset = 0;
+
     for (uint8_t i=0; i<_num_sensors; i++) {
         if (sensors[i].healthy) {
             // update altitude calculation
             if (is_zero(sensors[i].ground_pressure)) {
                 sensors[i].ground_pressure = sensors[i].pressure;
             }
-            sensors[i].altitude = get_altitude_difference(sensors[i].ground_pressure, sensors[i].pressure);
+
+            float baroAltitude = get_altitude_difference(sensors[i].ground_pressure, sensors[i].pressure);
+
+            if (location.num_waypoints > 0) {
+                sensors[i].altitude = location.z;
+                altitude_offset = location.z - baroAltitude;
+            }
+            else
+                sensors[i].altitude = baroAltitude + altitude_offset;
+
             // sanity check altitude
             sensors[i].alt_ok = !(isnan(sensors[i].altitude) || isinf(sensors[i].altitude));
         }
